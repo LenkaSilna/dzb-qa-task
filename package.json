@@ -1,0 +1,48 @@
+{
+  "name": "playwright-candidate-task",
+  "version": "1.0.0",
+  "description": "E2E tests for dovolena za benefity projects - candidate task",
+  "main": "index.js",
+  "private": true,
+  "scripts": {
+    "playwright:install": "playwright install --with-deps",
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:ui": "playwright test --ui",
+    "test:report": "playwright show-report",
+    "test:cz": "playwright test --project=cz",
+    "test:pl": "playwright test --project=pl",
+    "test:whitelabel": "playwright test --project=whitelabel",
+    "test:all-projects": "playwright test --project=cz --project=pl --project=whitelabel",
+    "test:all-projects:headed": "playwright test --project=cz --project=pl --project=whitelabel --headed",
+    "format": "prettier --write \"**/*.{ts,js,json,css,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,js,json,css,md}\"",
+    "lint": "eslint \"**/*.{ts,js}\"",
+    "lint:fix": "eslint \"**/*.{ts,js}\" --fix"
+  },
+  "keywords": [],
+  "author": "Arvio Technologies s.r.o.",
+  "engines": {
+    "node": ">=20"
+  },
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@playwright/test": "^1.58.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.2",
+    "@types/node": "^25.1.0",
+    "dotenv": "^17.2.3",
+    "eslint": "^9.39.2",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-playwright": "^2.5.1",
+    "eslint-plugin-prettier": "^5.5.5",
+    "globals": "^17.3.0",
+    "jiti": "^2.6.1",
+    "prettier": "^3.2.5",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.54.0"
+  }
+}
