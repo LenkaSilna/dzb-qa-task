@@ -20,7 +20,7 @@ Jedním z našich produktů je **Dovolená za Benefity** — multivariant aplika
 
 ## Úkol: Praktická implementace v Playwrightu
 
-**Časový limit: 4 hodiny** — TOTO JE TVRDÝ LIMIT. Kandidátovi, který k nám nastoupí čas proplatíme.
+**Časový limit: 4 hodiny** — TOTO JE TVRDÝ LIMIT. Kandidátovi, který k nám nastoupí, čas proplatíme.
 
 Ve spolupráci s AI vytvoř automatizované testy pro náš produkt.
 
