@@ -14,10 +14,40 @@ export type PaymentMethodType =
   | 'payment-card';
 
 // Payment methods with their availability per project
-export const PAYMENT_METHODS: Partial<
-  Record<PaymentMethodType, { name: string; availableIn: ProjectType[]; uiPattern: RegExp }>
+export const PAYMENT_METHODS: Record<
+  PaymentMethodType,
+  { name: string; availableIn: ProjectType[]; uiPattern: RegExp }
 > = {
-  // TODO: Fill in availableIn and uiPattern for each payment method based on the live product
+  'edenred-benefit-card': {
+    name: 'Benefitní karta Edenred',
+    availableIn: ['cz'],
+    uiPattern: /Benefitní karta Edenred/,
+  },
+  'edenred-cafeteria': {
+    name: 'Edenred Benefity Premium (Cafeterie)',
+    availableIn: ['cz'],
+    uiPattern: /Edenred Benefity Premium/,
+  },
+  'pluxee-benefit-card': {
+    name: 'Benefitní karta Pluxee',
+    availableIn: ['cz', 'whitelabel'],
+    uiPattern: /Benefitní karta Pluxee/,
+  },
+  'up-benefit-card': {
+    name: 'Benefitní karta UP',
+    availableIn: ['cz'],
+    uiPattern: /Benefitní karta UP/,
+  },
+  'payment-card': {
+    name: 'Platební karta',
+    availableIn: ['cz', 'whitelabel'],
+    uiPattern: /Platební karta/,
+  },
+  'bank-transfer': {
+    name: 'Převodem z účtu',
+    availableIn: ['cz', 'whitelabel'],
+    uiPattern: /Převodem z účtu/,
+  },
 };
 
 // Helper to get payment methods for specific project

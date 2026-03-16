@@ -6,3 +6,6 @@ test-results/
 # Ignore all artifacts
 artifacts/
 
+# Claude Code
+.claude/
+

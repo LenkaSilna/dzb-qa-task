@@ -1,6 +1,8 @@
 export const ROUTES = {
   cz: {
     homepage: '/',
+    voucher: '/voucher',
+    voucherVerification: '/overeni-poukazu',
     order: '/objednavka',
     accommodation: '/ubytovani',
     reservation: '/rezervace',
@@ -8,6 +10,7 @@ export const ROUTES = {
   },
   pl: {
     homepage: '/',
+    voucherVerification: '/sprawdz-voucher',
     order: '/zamowienie',
     accommodation: '/nocleg',
     reservation: '/rezerwacja',
@@ -15,6 +18,8 @@ export const ROUTES = {
   },
   whitelabel: {
     homepage: '/',
+    voucher: '/voucher',
+    voucherVerification: '/overeni-poukazu',
     order: '/objednavka',
     accommodation: '/ubytovani',
     reservation: '/rezervace',
