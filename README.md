@@ -152,8 +152,8 @@ Claude navrhl POM strukturu s abstrakcí CZ/WL rozdílů, data-driven přístup 
 **Specializovaní sub-agenti:** 
 Pro systematickou práci jsem si nastavila vlastní Claude Code sub-agenty — test-writer (psaní testů), code-review (review kódu), quality-check (lint, tsc, best practices), test-runner (spouštění a analýza výsledků) a lead (kontrola splnění požadavků z TASK.md). Každý agent měl definovaný scope a instrukce, což zajistilo konzistentní kvalitu výstupů.
 
-**Můj podíl:** 
-Definovala jsem požadavky, validovala rozhodnutí (např. přepnutí na preprod URL, tolerance server errorů), kontrolovala kvalitu kódu a finální výstup. Claude byl efektivní na mechanickou práci (DOM inspekce, iterativní fixing), já jsem řídila strategii.
+**Můj podíl:**
+Definovala jsem požadavky, validovala rozhodnutí (např. přepnutí na preprod URL) a kontrolovala kvalitu kódu. Požadovala jsem, aby testy vyplňovaly formulář sekvenčně jako reálný uživatel — ne přeskakováním do sekcí nebo přímým nastavováním hodnot. Když Claude původně navrhl tolerovat server errory jako PASS, zamítla jsem to — testy musí ověřovat správné odeslání formuláře. Díky tomu jsme odhalili race condition — Vue re-render po příchodu PostHog flags resetoval uživatelský input ve formuláři. Claude byl efektivní na mechanickou práci (DOM inspekce, iterativní fixing), já jsem řídila strategii a kvalitu výstupů.
 
 ---
 
