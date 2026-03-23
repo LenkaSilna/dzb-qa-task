@@ -15,7 +15,7 @@ test.describe('Voucher purchase — Unhappy path', () => {
     // Form should not navigate away
     await voucherPage.expectUrlUnchanged(urlBefore);
 
-    // Validation errors should be visible on required fields
+    // Expected fields: voucher value, name, email, phone, payment method
     await voucherPage.expectValidationErrorsVisible(5);
 
     // Specific error message should be shown (CZ uses "zadejte prosím" pattern)
