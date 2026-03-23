@@ -37,8 +37,6 @@ async function expectFormSubmitted(page: import('@playwright/test').Page) {
 
 test.describe('Voucher purchase — Happy path', () => {
   test('purchase with each payment method', async ({ voucherPage, paymentMethods, page }) => {
-    test.skip(paymentMethods.length === 0, 'No payment methods for this project');
-
     for (const method of paymentMethods) {
       await test.step(`payment: ${method.name}`, async () => {
         await voucherPage.goto();
@@ -60,8 +58,6 @@ test.describe('Voucher purchase — Happy path', () => {
 
 test.describe('Voucher purchase — Gift option', () => {
   test('purchase as gift', async ({ voucherPage, paymentMethods, page }) => {
-    test.skip(paymentMethods.length === 0, 'No payment methods for this project');
-
     await voucherPage.goto();
     await voucherPage.selectVoucherValue(0);
 

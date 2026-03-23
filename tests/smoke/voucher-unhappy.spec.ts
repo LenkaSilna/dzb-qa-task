@@ -30,8 +30,6 @@ test.describe('Voucher purchase — Unhappy path', () => {
     page,
     projectVariant,
   }) => {
-    test.skip(paymentMethods.length === 0, 'No payment methods for this project');
-
     await voucherPage.goto();
 
     await voucherPage.selectVoucherValue(0);

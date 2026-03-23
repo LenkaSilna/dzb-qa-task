@@ -202,17 +202,17 @@ export class VoucherPage {
 
   async expectValidationErrorsVisible(minCount: number = 1) {
     if (this.project === 'cz') {
+      // CZ marks individual fields with .is-invalid class
       const invalidFields = this.page.locator('.is-invalid');
       await expect(invalidFields.first()).toBeVisible({ timeout: TIMING.validationError });
       const count = await invalidFields.count();
       expect(count).toBeGreaterThanOrEqual(minCount);
-      return count;
+    } else {
+      // WL shows a summary validation message — individual fields are not marked reliably
+      await expect(this.page.getByText('Pole označená * jsou povinná')).toBeVisible({
+        timeout: TIMING.validationError,
+      });
     }
-    // WL shows a validation message instead of marking individual fields
-    await expect(this.page.getByText('Pole označená * jsou povinná')).toBeVisible({
-      timeout: TIMING.validationError,
-    });
-    return minCount;
   }
 
   async expectValidationErrorOnCheckbox() {
@@ -226,10 +226,9 @@ export class VoucherPage {
   }
 
   async expectUrlUnchanged(originalUrl: string) {
-    // Web-first assertion — Playwright retries until URL matches or timeout
-    const originalPath = new URL(originalUrl).pathname;
-    const escapedPath = originalPath.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    await expect(this.page).toHaveURL(new RegExp(escapedPath));
+    // Exact pathname match — /voucher must not match /voucher-confirmation
+    const { origin, pathname } = new URL(originalUrl);
+    await expect(this.page).toHaveURL(new URL(pathname, origin).href);
   }
 
   async expectSummaryVisible() {

@@ -17,8 +17,11 @@ type Fixtures = {
 };
 
 export const test = base.extend<Fixtures & ProjectOptions>({
-  projectVariant: ['cz', { option: true }],
-  projectPaymentMethods: [[], { option: true }],
+  // Defaults are intentionally invalid — every project must set these in playwright.config.ts.
+  // Playwright requires a default value for options, so we use empty string / empty array
+  // and validate in fixtures below.
+  projectVariant: ['' as VoucherProjectName, { option: true }],
+  projectPaymentMethods: [[] as PaymentMethodType[], { option: true }],
 
   voucherPage: async ({ page, projectVariant }, use) => {
     if (!projectVariant) {
@@ -28,6 +31,11 @@ export const test = base.extend<Fixtures & ProjectOptions>({
   },
 
   paymentMethods: async ({ projectPaymentMethods }, use) => {
+    if (!projectPaymentMethods?.length) {
+      throw new Error(
+        'projectPaymentMethods must be set in playwright.config.ts project use options'
+      );
+    }
     const resolved = projectPaymentMethods.map((key) => ({
       key,
       name: PAYMENT_METHODS[key].name,
