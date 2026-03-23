@@ -6,6 +6,7 @@ import prettier from 'eslint-plugin-prettier/recommended';
 import { defineConfig } from 'eslint/config';
 
 export default defineConfig([
+  { ignores: ['playwright-report/**', 'test-results/**'] },
   {
     files: ['**/*.{js,mjs,cjs,ts,mts,cts}'],
     plugins: { js },
@@ -16,10 +17,9 @@ export default defineConfig([
     },
   },
   {
-    // POM uses waitForTimeout & force for Vue custom components (dropdown, checkboxes)
+    // POM uses force: true for Vue custom components (dropdown, checkboxes)
     files: ['tests/pages/**/*.ts'],
     rules: {
-      'playwright/no-wait-for-timeout': 'off',
       'playwright/no-force-option': 'off',
     },
   },

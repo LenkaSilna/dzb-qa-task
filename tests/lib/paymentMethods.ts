@@ -1,9 +1,8 @@
 /**
- * Payment Methods DTO
- * Centralized definition of available payment methods used across config and tests
+ * Payment method definitions.
+ * Config assigns methods to projects via playwright.config.ts `use.projectPaymentMethods`.
+ * Fixtures resolve keys to display names via PAYMENT_METHODS lookup.
  */
-
-export type ProjectType = 'cz' | 'pl' | 'whitelabel';
 
 export type PaymentMethodType =
   | 'pluxee-benefit-card'
@@ -13,55 +12,11 @@ export type PaymentMethodType =
   | 'up-benefit-card'
   | 'payment-card';
 
-// Payment methods with their availability per project
-export const PAYMENT_METHODS: Record<
-  PaymentMethodType,
-  { name: string; availableIn: ProjectType[]; uiPattern: RegExp }
-> = {
-  'edenred-benefit-card': {
-    name: 'Benefitní karta Edenred',
-    availableIn: ['cz'],
-    uiPattern: /Benefitní karta Edenred/,
-  },
-  'edenred-cafeteria': {
-    name: 'Edenred Benefity Premium (Cafeterie)',
-    availableIn: ['cz'],
-    uiPattern: /Edenred Benefity Premium/,
-  },
-  'pluxee-benefit-card': {
-    name: 'Benefitní karta Pluxee',
-    availableIn: ['cz', 'whitelabel'],
-    uiPattern: /Benefitní karta Pluxee/,
-  },
-  'up-benefit-card': {
-    name: 'Benefitní karta UP',
-    availableIn: ['cz'],
-    uiPattern: /Benefitní karta UP/,
-  },
-  'payment-card': {
-    name: 'Platební karta',
-    availableIn: ['cz', 'whitelabel'],
-    uiPattern: /Platební karta/,
-  },
-  'bank-transfer': {
-    name: 'Převodem z účtu',
-    availableIn: ['cz', 'whitelabel'],
-    uiPattern: /Převodem z účtu/,
-  },
+export const PAYMENT_METHODS: Record<PaymentMethodType, { name: string }> = {
+  'edenred-benefit-card': { name: 'Benefitní karta Edenred' },
+  'edenred-cafeteria': { name: 'Edenred Benefity Premium (Cafeterie)' },
+  'pluxee-benefit-card': { name: 'Benefitní karta Pluxee' },
+  'up-benefit-card': { name: 'Benefitní karta UP' },
+  'payment-card': { name: 'Platební karta' },
+  'bank-transfer': { name: 'Převodem z účtu' },
 };
-
-// Helper to get payment methods for specific project
-const getPaymentMethodsForProject = (project: ProjectType): PaymentMethodType[] =>
-  (Object.keys(PAYMENT_METHODS) as PaymentMethodType[]).filter((method) =>
-    PAYMENT_METHODS[method]?.availableIn.includes(project)
-  );
-
-export const getAllPaymentMethods = (): PaymentMethodType[] =>
-  Object.keys(PAYMENT_METHODS) as PaymentMethodType[];
-
-// Project-specific payment methods
-export const PROJECT_PAYMENT_METHODS = {
-  cz: getPaymentMethodsForProject('cz'),
-  pl: getPaymentMethodsForProject('pl'),
-  whitelabel: getPaymentMethodsForProject('whitelabel'),
-} as const;

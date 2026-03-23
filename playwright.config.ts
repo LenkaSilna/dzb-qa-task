@@ -1,6 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
+import type { ProjectOptions } from './tests/fixtures';
 
-export default defineConfig({
+export default defineConfig<ProjectOptions>({
   testDir: './tests',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
@@ -21,14 +22,15 @@ export default defineConfig({
       use: {
         ...devices['Desktop Chrome'],
         baseURL: 'https://wa-fe-dzb-cz-preprod.azurewebsites.net',
-      },
-    },
-    {
-      name: 'pl',
-      use: {
-        ...devices['Desktop Chrome'],
-        baseURL: 'https://wa-fe-dzb-pl-preprod.azurewebsites.net',
-        locale: 'pl-PL',
+        projectVariant: 'cz',
+        projectPaymentMethods: [
+          'edenred-benefit-card',
+          'edenred-cafeteria',
+          'pluxee-benefit-card',
+          'up-benefit-card',
+          'payment-card',
+          'bank-transfer',
+        ],
       },
     },
     {
@@ -36,6 +38,8 @@ export default defineConfig({
       use: {
         ...devices['Desktop Chrome'],
         baseURL: 'https://wa-fe-dzb-pluxee-cz-preprod.azurewebsites.net',
+        projectVariant: 'whitelabel',
+        projectPaymentMethods: ['pluxee-benefit-card', 'payment-card', 'bank-transfer'],
       },
     },
   ],

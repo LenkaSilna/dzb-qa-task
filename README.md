@@ -57,16 +57,17 @@ npx tsc --noEmit      # TypeScript
 
 ```
 tests/
+├── fixtures.ts                   # Custom Playwright fixtures (voucherPage, paymentMethods)
 ├── lib/
-│   ├── paymentMethods.ts       # Platební metody — centrální definice s availableIn per projekt
-│   ├── routes.ts               # URL cesty per varianta
-│   ├── testData.ts             # Testovací data (PersonalInfo, GiftInfo)
-│   └── timing.ts               # Timing konstanty — single source of truth, žádné hardcoded hodnoty
+│   ├── paymentMethods.ts         # Platební metody — key → display name lookup
+│   ├── routes.ts                 # URL cesty per varianta
+│   ├── testData.ts               # Testovací data (PersonalInfo, GiftInfo)
+│   └── timing.ts                 # Timeout konstanty pro web-first assertions
 ├── pages/
-│   └── VoucherPage.ts          # Page Object Model — abstrahuje CZ/WL rozdíly
+│   └── VoucherPage.ts            # Page Object Model — abstrahuje CZ/WL rozdíly
 └── smoke/
-    ├── voucher-happy.spec.ts   # Happy path — všechny platební metody + gift
-    └── voucher-unhappy.spec.ts # Unhappy path — prázdný formulář, chybějící T&C
+    ├── voucher-happy.spec.ts     # Happy path — všechny platební metody + gift
+    └── voucher-unhappy.spec.ts   # Unhappy path — prázdný formulář, chybějící T&C
 ```
 
 ### Co testy pokrývají
@@ -84,11 +85,8 @@ tests/
 **Page Object Model (POM):** 
 Jeden `VoucherPage` pro obě varianty. CZ používá stabilní sémantické ID (`#customer-firstname`, `#voucher-value-1`), WL má dynamické Vue ID → selektory řešeny přes `getByLabel()` a `getByRole()`. Rozdíly jsou abstrahovány v POM metodách, spec soubory zůstávají čisté.
 
-**Data-driven přístup:** 
-Happy path iteruje přes platební metody z `paymentMethods.ts`. Přidání nové metody = 1 řádek v konfiguraci, žádná změna v testech.
-
-**Projekt filtrování:** 
-Spec soubory definují testy pro obě varianty, Playwright `test.skip()` zajistí, že se spustí jen relevantní testy pro daný projekt.
+**Parameterized Projects + Fixtures:**
+Platební metody a varianta projektu se definují v `playwright.config.ts` přes custom `use` options ([Playwright docs pattern](https://playwright.dev/docs/test-parameterize#parameterized-projects)). Custom fixtures (`tests/fixtures.ts`) injektují `voucherPage` a `paymentMethods` do testů. Spec soubory neimportují žádnou konfiguraci přímo — jen konzumují fixtures. Přidání nové varianty = nový project v configu, žádná změna v testech.
 
 ---
 
@@ -100,7 +98,7 @@ Před psaním testů jsem provedla průzkum live aplikace — DOM inspekce, anal
 
 PL varianta na `/voucher` zobrazuje chybovou stránku ("Przepraszamy, nie udało się załadować strony"). TASK.md nezmiňuje PL v seznamu platebních metod. Stránka `/sprawdz-voucher` existuje, ale slouží k ověření platnosti kódu (ekvivalent CZ `/overeni-poukazu`), ne k nákupu.
 
-**Rozhodnutí:** Voucher testy pouze pro CZ + Whitelabel. PL projekt zůstává v configu pro budoucí rozšíření.
+**Rozhodnutí:** Voucher testy pouze pro CZ + Whitelabel. PL projekt odstraněn z configu (vrátit zpět = přidat project do `playwright.config.ts`).
 
 ### URL — preview-qa-test vs preprod
 
@@ -167,3 +165,56 @@ S více časem bych se zaměřila na následující oblasti:
 4. Přidala bych **accessibility testy** — keyboard navigation formulářem, správné ARIA atributy na custom dropdown komponentech.
 5. Vyřešila bych Vue dropdown stabilitu elegantněji — buď custom Playwright fixture, nebo request interception místo retry smyčky s `force: true`.
 6. Gift option test pro WL by mohl kontrolovat **WL-specifické success/error texty** — aktuálně obě varianty sdílejí stejný assertion flow, ale WL může mít odlišné formulace.
+
+---
+
+## Refaktoring na základě code review feedbacku
+
+Po odevzdání původní verze jsem obdržela feedback na kvalitu kódu. Následující sekce popisuje provedené změny.
+
+### Co bylo vytknuto
+
+1. **`waitForTimeout`** — 7 výskytů v kódu, schovaných za `TIMING` konstanty. Centralizace je lepší než magic numbers, ale samotný pattern je Playwright anti-pattern — čekání fixní doby místo čekání na konkrétní stav.
+2. **Žádné fixtures** — `VoucherPage` se vytvářela přímo v testu (`new VoucherPage(page, projectName)`). Bez dependency injection se instanciace opakuje v každém testu.
+3. **Payment methods v spec souborech** — import `PAYMENT_METHODS` + helper funkce `getProjectPaymentMethods()` přímo ve spec souborech. Testy věděly, odkud platební metody pocházejí.
+
+### Co bylo provedeno
+
+#### 1. Parameterized Projects + Custom Fixtures
+
+Implementace dle [Playwright dokumentace](https://playwright.dev/docs/test-parameterize#parameterized-projects):
+
+- **`tests/fixtures.ts`** — definuje `ProjectOptions` (`projectVariant`, `projectPaymentMethods`) jako `{ option: true }` a dvě fixtures: `voucherPage` (DI pro POM) a `paymentMethods` (resolvuje klíče na display names).
+- **`playwright.config.ts`** — každý project definuje `projectVariant` a `projectPaymentMethods` v `use`. Typováno přes `defineConfig<ProjectOptions>`.
+- **Spec soubory** — importují `test` z `../fixtures`, konzumují `voucherPage` a `paymentMethods` přes destructuring. Žádný přímý import `PAYMENT_METHODS`, žádný `test.skip(testInfo.project.name !== projectName)`.
+- **Validace** — fixture throwne error pokud `projectVariant` chybí v configu (fail-fast místo tichého fallbacku na default).
+
+**Výsledek:** přidání nové varianty = nový project v `playwright.config.ts`, žádná úprava spec souborů.
+
+#### 2. Eliminace všech `waitForTimeout`
+
+Všech 7 výskytů nahrazeno web-first assertions:
+
+| Metoda | Bylo | Nahrazeno čím |
+|---|---|---|
+| `goto()` — po cookie dismiss | `waitForTimeout(500)` | Odstraněno — `expect(submitButton).toBeVisible()` níže slouží jako gate |
+| `goto()` — po scrollu k formuláři | `waitForTimeout(500)` | `expect(submitButton).toBeVisible()` |
+| `toggleGiftOption()` — před klikem | `waitForTimeout(300)` | Odstraněno — Playwright `click()` čeká na actionability sám |
+| `toggleGiftOption()` — po zaškrtnutí | `waitForTimeout(500)` | `expect(giftRecipientName).toBeVisible()` |
+| `selectPaymentMethod()` — před dropdown | `waitForTimeout(500)` | `expect(dropdownBtn).toBeVisible()` |
+| `selectPaymentMethod()` — mezi retries | `waitForTimeout(500)` | `expect(dropdownList).toBeHidden()` |
+| `expectUrlUnchanged()` — URL stabilizace | `waitForTimeout(1000)` | `expect(page).toHaveURL(regex)` |
+
+Nepoužívané timing konstanty (`shortDelay`, `mediumDelay`, `urlStabilize`) odstraněny z `timing.ts`.
+
+#### 3. Oprava flaky WL empty form testu
+
+WL varianta při validaci prázdného formuláře zobrazuje hlášku "Pole označená * jsou povinná" místo `aria-invalid` atributů na polích. Pod zátěží (paralelní workers) se `aria-invalid` atributy nemusely nastavit včas, což způsobovalo flaky test.
+
+**Fix:** `expectValidationErrorsVisible()` pro WL čeká na validační hlášku přes `getByText()` místo čekání na `aria-invalid` selektory.
+
+#### 4. Cleanup
+
+- **`paymentMethods.ts`** — odstraněny nepoužívané exporty (`getAllPaymentMethods`, `PROJECT_PAYMENT_METHODS`, `availableIn`, `uiPattern`, `ProjectType`). Zůstává jen `PaymentMethodType` a `PAYMENT_METHODS` (key → name lookup pro fixture).
+- **`eslint.config.mts`** — přidán `ignores: ['playwright-report/**', 'test-results/**']`; odstraněn `playwright/no-wait-for-timeout: 'off'` (žádné `waitForTimeout` v kódu).
+- **PL projekt** — odstraněn z `playwright.config.ts` a `package.json` scriptů (nemá voucher stránku).

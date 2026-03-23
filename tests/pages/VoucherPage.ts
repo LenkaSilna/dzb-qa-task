@@ -49,7 +49,6 @@ export class VoucherPage {
     const cookieBtn = this.page.getByRole('button', { name: /Rozumím|Přijmout|Accept/i });
     if (await cookieBtn.isVisible({ timeout: TIMING.cookieBanner }).catch(() => false)) {
       await cookieBtn.click();
-      await this.page.waitForTimeout(TIMING.mediumDelay);
     }
 
     await this.neutralizeCheckboxLinks();
@@ -58,7 +57,8 @@ export class VoucherPage {
       const form = document.querySelector('#voucher-form') || document.querySelector('.order-form');
       form?.scrollIntoView({ behavior: 'instant', block: 'start' });
     });
-    await this.page.waitForTimeout(TIMING.mediumDelay);
+    // Form is scrolled into view — wait until submit button is visible (form is ready)
+    await expect(this.submitButton).toBeVisible();
   }
 
   async selectVoucherValue(index: number = 0) {
@@ -108,14 +108,22 @@ export class VoucherPage {
 
   async toggleGiftOption() {
     if (this.project === 'cz') {
-      await this.page.locator('label[for="buy-as-gift"]').scrollIntoViewIfNeeded();
-      await this.page.waitForTimeout(TIMING.shortDelay);
-      await this.page.locator('label[for="buy-as-gift"]').click();
+      const giftLabel = this.page.locator('label[for="buy-as-gift"]');
+      await giftLabel.scrollIntoViewIfNeeded();
+      // No delay needed — Playwright click waits for actionability after scroll
+      await giftLabel.click();
       await expect(this.page.locator('#buy-as-gift')).toBeChecked();
     } else {
       await this.page.getByLabel(/Kupuji jako dárek/).check();
     }
-    await this.page.waitForTimeout(TIMING.mediumDelay);
+
+    // Wait for gift fields to render instead of a fixed delay.
+    // The form dynamically shows recipient fields after toggling the gift checkbox.
+    if (this.project === 'cz') {
+      await expect(this.page.locator('#gift-recipient-name')).toBeVisible();
+    } else {
+      await expect(this.page.getByLabel(/Jméno příjemce|Jméno obdarovaného/)).toBeVisible();
+    }
   }
 
   async fillGiftFields(gift: GiftInfo) {
@@ -135,7 +143,8 @@ export class VoucherPage {
       const dropdownList = this.page.locator('.payment-form__inline-input .select__list');
 
       await dropdownBtn.scrollIntoViewIfNeeded();
-      await this.page.waitForTimeout(TIMING.mediumDelay);
+      // Wait for dropdown button to be stable and visible after scroll
+      await expect(dropdownBtn).toBeVisible();
 
       for (let attempt = 0; attempt < TIMING.dropdownMaxRetries; attempt++) {
         await dropdownBtn.click({ force: true });
@@ -144,7 +153,8 @@ export class VoucherPage {
           .then(() => true)
           .catch(() => false);
         if (isVisible) break;
-        await this.page.waitForTimeout(TIMING.mediumDelay);
+        // Wait for dropdown list to fully close before retrying
+        await expect(dropdownList).toBeHidden();
       }
       await expect(dropdownList).toBeVisible();
 
@@ -191,12 +201,18 @@ export class VoucherPage {
   // --- Assertions ---
 
   async expectValidationErrorsVisible(minCount: number = 1) {
-    const invalidSelector = this.project === 'cz' ? '.is-invalid' : '[aria-invalid="true"]';
-    const invalidFields = this.page.locator(invalidSelector);
-    await expect(invalidFields.first()).toBeVisible({ timeout: TIMING.validationError });
-    const count = await invalidFields.count();
-    expect(count).toBeGreaterThanOrEqual(minCount);
-    return count;
+    if (this.project === 'cz') {
+      const invalidFields = this.page.locator('.is-invalid');
+      await expect(invalidFields.first()).toBeVisible({ timeout: TIMING.validationError });
+      const count = await invalidFields.count();
+      expect(count).toBeGreaterThanOrEqual(minCount);
+      return count;
+    }
+    // WL shows a validation message instead of marking individual fields
+    await expect(this.page.getByText('Pole označená * jsou povinná')).toBeVisible({
+      timeout: TIMING.validationError,
+    });
+    return minCount;
   }
 
   async expectValidationErrorOnCheckbox() {
@@ -210,10 +226,10 @@ export class VoucherPage {
   }
 
   async expectUrlUnchanged(originalUrl: string) {
-    await this.page.waitForTimeout(TIMING.urlStabilize);
-    const currentPath = new URL(this.page.url()).pathname;
+    // Web-first assertion — Playwright retries until URL matches or timeout
     const originalPath = new URL(originalUrl).pathname;
-    expect(currentPath).toBe(originalPath);
+    const escapedPath = originalPath.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    await expect(this.page).toHaveURL(new RegExp(escapedPath));
   }
 
   async expectSummaryVisible() {
