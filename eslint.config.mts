@@ -34,11 +34,10 @@ export default defineConfig([
     },
   },
   {
-    // Unhappy path: conditional expects handle CZ vs WL variant differences
+    // Unhappy path: assertions are in POM methods (expect* pattern)
     files: ['tests/smoke/voucher-unhappy.spec.ts'],
     rules: {
-      'playwright/no-conditional-in-test': 'off',
-      'playwright/no-conditional-expect': 'off',
+      'playwright/expect-expect': ['warn', { assertFunctionPatterns: ['^expect'] }],
     },
   },
   tseslint.configs.recommended,

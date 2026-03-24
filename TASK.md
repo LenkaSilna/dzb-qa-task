@@ -10,10 +10,10 @@ Jedním z našich produktů je **Dovolená za Benefity** — multivariant aplika
 
 **Varianty produktu:**
 
-| Projekt    | URL                                                    |
-| ---------- | -----------------------------------------------------  |
-| CZ         | https://wa-fe-dzb-cz-preview-qa-test.azurewebsites.net |
-| PL         | https://wa-fe-dzb-pl-preview-qa-test.azurewebsites.net |
+| Projekt    | URL                                                           |
+| ---------- | ------------------------------------------------------------- |
+| CZ         | https://wa-fe-dzb-cz-preview-qa-test.azurewebsites.net        |
+| PL         | https://wa-fe-dzb-pl-preview-qa-test.azurewebsites.net        |
 | Whitelabel | https://wa-fe-dzb-pluxee-cz-preview-qa-test.azurewebsites.net |
 
 ---

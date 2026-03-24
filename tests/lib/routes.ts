@@ -27,4 +27,4 @@ export const ROUTES = {
   },
 } as const;
 
-export type ProjectName = keyof typeof ROUTES; // Extract valid project names
+export type ProjectName = keyof typeof ROUTES;

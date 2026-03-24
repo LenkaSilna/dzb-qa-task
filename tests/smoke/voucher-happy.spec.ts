@@ -1,22 +1,18 @@
 import { test, expect } from '../fixtures';
 import { VALID_CUSTOMER, VALID_GIFT } from '../lib/testData';
 import { TIMING } from '../lib/timing';
+import type { OrderStatusPage } from '../pages/OrderStatusPage';
 
 /**
- * Asserts successful form submission. Server errors are acceptable on preprod
- * (form passed validation). Form validation errors always fail the test.
+ * Asserts successful form submission — strict happy path.
+ * Navigation to /status/ is required. Server errors and form validation errors
+ * both fail the test. Happy path must succeed end-to-end.
  */
-async function expectFormSubmitted(page: import('@playwright/test').Page) {
-  const navigated = await page
-    .waitForURL(/\/status\//, { timeout: TIMING.navigation })
-    .then(() => true)
-    .catch(() => false);
-
-  if (navigated) {
-    expect(page.url()).toContain('/status/');
-    return;
-  }
-
+async function expectFormSubmitted(
+  page: import('@playwright/test').Page,
+  orderStatusPage: OrderStatusPage
+) {
+  // Check for form validation errors first (immediate feedback, no wait needed)
   const hasFormError = await page
     .getByText(/V objednávkovém formuláři se vyskytují chyby/i)
     .first()
@@ -24,19 +20,22 @@ async function expectFormSubmitted(page: import('@playwright/test').Page) {
     .catch(() => false);
   expect(hasFormError, 'Form validation error — missing fields or unchecked T&C').toBe(false);
 
-  const hasServerError = await page
-    .getByText(/Nastala neznámá chyba|zkuste to prosím znovu/i)
-    .first()
-    .isVisible({ timeout: TIMING.serverError })
-    .catch(() => false);
-  expect(
-    hasServerError,
-    'Expected navigation to /status/ or a server error (form was submitted)'
-  ).toBe(true);
+  // Navigation to /status/ is mandatory for happy path
+  await page.waitForURL(/\/status\//, { timeout: TIMING.navigation });
+
+  // Verify order status page content
+  await orderStatusPage.expectOnStatusPage();
+  await orderStatusPage.expectSummaryPricing();
+  await orderStatusPage.expectOrderIdentifier();
 }
 
 test.describe('Voucher purchase — Happy path', () => {
-  test('purchase with each payment method', async ({ voucherPage, paymentMethods, page }) => {
+  test('purchase with each payment method', async ({
+    voucherPage,
+    orderStatusPage,
+    paymentMethods,
+    page,
+  }) => {
     for (const method of paymentMethods) {
       await test.step(`payment: ${method.name}`, async () => {
         await voucherPage.goto();
@@ -50,14 +49,14 @@ test.describe('Voucher purchase — Happy path', () => {
         await voucherPage.checkRequiredTerms();
 
         await voucherPage.submit();
-        await expectFormSubmitted(page);
+        await expectFormSubmitted(page, orderStatusPage);
       });
     }
   });
 });
 
 test.describe('Voucher purchase — Gift option', () => {
-  test('purchase as gift', async ({ voucherPage, paymentMethods, page }) => {
+  test('purchase as gift', async ({ voucherPage, orderStatusPage, paymentMethods, page }) => {
     await voucherPage.goto();
     await voucherPage.selectVoucherValue(0);
 
@@ -70,6 +69,6 @@ test.describe('Voucher purchase — Gift option', () => {
     await voucherPage.checkRequiredTerms();
 
     await voucherPage.submit();
-    await expectFormSubmitted(page);
+    await expectFormSubmitted(page, orderStatusPage);
   });
 });

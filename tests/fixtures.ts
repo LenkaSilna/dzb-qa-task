@@ -1,5 +1,6 @@
 import { test as base } from '@playwright/test';
 import { VoucherPage, type VoucherProjectName } from './pages/VoucherPage';
+import { OrderStatusPage } from './pages/OrderStatusPage';
 import { type PaymentMethodType, PAYMENT_METHODS } from './lib/paymentMethods';
 
 /**
@@ -13,6 +14,7 @@ export type ProjectOptions = {
 
 type Fixtures = {
   voucherPage: VoucherPage;
+  orderStatusPage: OrderStatusPage;
   paymentMethods: { key: PaymentMethodType; name: string }[];
 };
 
@@ -28,6 +30,13 @@ export const test = base.extend<Fixtures & ProjectOptions>({
       throw new Error('projectVariant must be set in playwright.config.ts project use options');
     }
     await use(new VoucherPage(page, projectVariant));
+  },
+
+  orderStatusPage: async ({ page, projectVariant }, use) => {
+    if (!projectVariant) {
+      throw new Error('projectVariant must be set in playwright.config.ts project use options');
+    }
+    await use(new OrderStatusPage(page, projectVariant));
   },
 
   paymentMethods: async ({ projectPaymentMethods }, use) => {

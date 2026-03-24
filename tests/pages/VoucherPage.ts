@@ -156,7 +156,10 @@ export class VoucherPage {
         // Wait for dropdown list to fully close before retrying
         await expect(dropdownList).toBeHidden();
       }
-      await expect(dropdownList).toBeVisible();
+      await expect(
+        dropdownList,
+        `Payment dropdown failed to open after ${TIMING.dropdownMaxRetries} attempts`
+      ).toBeVisible();
 
       const listButton = this.page
         .locator('.payment-form__inline-input .select__list-button')
@@ -177,9 +180,7 @@ export class VoucherPage {
       for (const id of ['#cancellation-conditions', '#business-conditions']) {
         const checkbox = this.page.locator(id);
         await checkbox.scrollIntoViewIfNeeded();
-        if (!(await checkbox.isChecked())) {
-          await checkbox.check({ force: true });
-        }
+        await checkbox.check();
         await expect(checkbox).toBeChecked();
       }
     } else {
@@ -215,6 +216,24 @@ export class VoucherPage {
     }
   }
 
+  async expectSpecificValidationMessage() {
+    if (this.project === 'cz') {
+      await expect(this.page.getByText('zadejte prosím').first()).toBeVisible();
+    } else {
+      await expect(this.page.getByText('Pole označená * jsou povinná')).toBeVisible();
+    }
+  }
+
+  async expectTermsNotChecked() {
+    if (this.project === 'cz') {
+      await expect(this.page.locator('#cancellation-conditions')).not.toBeChecked();
+      await expect(this.page.locator('#business-conditions')).not.toBeChecked();
+    } else {
+      await expect(this.page.getByLabel(/Souhlasím se storno podmínkami/)).not.toBeChecked();
+      await expect(this.page.getByLabel(/Souhlasím s obchodními podmínkami/)).not.toBeChecked();
+    }
+  }
+
   async expectValidationErrorOnCheckbox() {
     if (this.project === 'cz') {
       await expect(this.page.locator('.input-checkbox.is-invalid').first()).toBeVisible();
@@ -232,6 +251,7 @@ export class VoucherPage {
   }
 
   async expectSummaryVisible() {
+    // Both CZ and WL have a "Rekapitulace" heading in the order form
     await expect(this.page.getByRole('heading', { name: 'Rekapitulace' })).toBeVisible();
   }
 

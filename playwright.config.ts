@@ -21,7 +21,7 @@ export default defineConfig<ProjectOptions>({
       name: 'cz',
       use: {
         ...devices['Desktop Chrome'],
-        baseURL: 'https://wa-fe-dzb-cz-preprod.azurewebsites.net',
+        baseURL: 'https://wa-fe-dzb-cz-preview-qa-test.azurewebsites.net',
         projectVariant: 'cz',
         projectPaymentMethods: [
           'edenred-benefit-card',
@@ -37,7 +37,7 @@ export default defineConfig<ProjectOptions>({
       name: 'whitelabel',
       use: {
         ...devices['Desktop Chrome'],
-        baseURL: 'https://wa-fe-dzb-pluxee-cz-preprod.azurewebsites.net',
+        baseURL: 'https://wa-fe-dzb-pluxee-cz-preview-qa-test.azurewebsites.net',
         projectVariant: 'whitelabel',
         projectPaymentMethods: ['pluxee-benefit-card', 'payment-card', 'bank-transfer'],
       },
